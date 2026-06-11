@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center animate-fade-in">
+    <div class="col-lg-8">
+        <div class="glass-panel p-4 p-md-5 shadow-lg">
+            <h3 class="fw-bold mb-4 text-gradient"><i class="fa-solid fa-file-signature text-primary me-2"></i>{{ legend }}</h3>
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label text-secondary small fw-semibold") }}
+                    {% if form.title.errors %}
+                        {{ form.title(class="form-control is-invalid", placeholder="Complete proposal review...") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.title.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.title(class="form-control", placeholder="Complete proposal review...") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label text-secondary small fw-semibold") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid", rows="4", placeholder="List objectives, criteria, and deadline considerations...") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control", rows="4", placeholder="List objectives, criteria, and deadline considerations...") }}
+                    {% endif %}
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        {{ form.due_date.label(class="form-label text-secondary small fw-semibold") }}
+                        {% if form.due_date.errors %}
+                            {{ form.due_date(class="form-control is-invalid", type="date") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.due_date.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.due_date(class="form-control", type="date") }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {{ form.category_id.label(class="form-label text-secondary small fw-semibold") }}
+                        {% if form.category_id.errors %}
+                            {{ form.category_id(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.category_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.category_id(class="form-select") }}
+                        {% endif %}
+                        <div class="form-text small text-muted">Manage your categories on the <a href="{{ url_for('tasks.manage_categories') }}" class="text-primary text-decoration-none">Categories Page</a>.</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        {{ form.priority.label(class="form-label text-secondary small fw-semibold") }}
+                        {% if form.priority.errors %}
+                            {{ form.priority(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.priority.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.priority(class="form-select") }}
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        {{ form.status.label(class="form-label text-secondary small fw-semibold") }}
+                        {% if form.status.errors %}
+                            {{ form.status(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.status.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.status(class="form-select") }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-secondary-custom">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

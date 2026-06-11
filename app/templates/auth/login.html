@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content_auth %}
+<div class="row justify-content-center animate-fade-in">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-panel p-4 p-md-5 auth-card mx-auto shadow-2xl">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary rounded-circle mb-3" style="width: 50px; height: 50px; box-shadow: 0 0 15px var(--primary-glow);">
+                    <i class="fa-solid fa-lock text-white fs-4"></i>
+                </div>
+                <h3 class="fw-bold text-gradient">Welcome Back</h3>
+                <p class="text-secondary small">Access your smart task workflow dashboard</p>
+            </div>
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label text-secondary small fw-semibold") }}
+                    {% if form.email.errors %}
+                        {{ form.email(class="form-control is-invalid", placeholder="you@example.com") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.email(class="form-control", placeholder="you@example.com") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label text-secondary small fw-semibold") }}
+                    {% if form.password.errors %}
+                        {{ form.password(class="form-control is-invalid", placeholder="••••••••") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.password(class="form-control", placeholder="••••••••") }}
+                    {% endif %}
+                </div>
+                
+                <div class="form-check mb-4">
+                    {{ form.remember(class="form-check-input") }}
+                    {{ form.remember.label(class="form-check-label text-secondary small") }}
+                </div>
+                
+                <div class="d-grid mb-3">
+                    {{ form.submit(class="btn btn-primary btn-block py-2.5") }}
+                </div>
+            </form>
+            
+            <hr class="border-secondary opacity-20 my-4">
+            
+            <div class="text-center">
+                <p class="text-secondary small mb-0">Don't have an account? 
+                    <a href="{{ url_for('auth.register') }}" class="text-primary text-decoration-none fw-semibold">Sign Up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content_auth %}

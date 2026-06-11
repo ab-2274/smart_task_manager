@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="animate-fade-in">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 text-gradient">Manage Categories</h2>
+            <p class="text-secondary mb-0">Create custom tags with color markers to organize tasks</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Add Category Form -->
+        <div class="col-md-5 mb-4">
+            <div class="glass-panel p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-tag text-primary me-2"></i>New Category</h5>
+                
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label text-secondary small fw-semibold") }}
+                        {% if form.name.errors %}
+                            {{ form.name(class="form-control is-invalid", placeholder="e.g. Design, Personal, Gym") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.name(class="form-control", placeholder="e.g. Design, Personal, Gym") }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.color.label(class="form-label text-secondary small fw-semibold d-block") }}
+                        {% if form.color.errors %}
+                            {{ form.color(class="form-control form-control-color w-100 is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.color.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.color(class="form-control form-control-color w-100", style="height: 48px;") }}
+                        {% endif %}
+                        <div class="form-text small text-muted">Select a background color theme for the tags.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.icon.label(class="form-label text-secondary small fw-semibold") }}
+                        {% if form.icon.errors %}
+                            {{ form.icon(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.icon.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.icon(class="form-select") }}
+                        {% endif %}
+                        <div class="form-text small text-muted">Choose a visual icon representing this category.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Categories List -->
+        <div class="col-md-7 mb-4">
+            <div class="glass-panel p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-list text-primary me-2"></i>Active Categories</h5>
+                
+                <div class="row g-2">
+                    {% if categories %}
+                        {% for cat in categories %}
+                            <div class="col-12">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-dark bg-opacity-20 border border-secondary border-opacity-10">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Color & Icon indicator -->
+                                        <span class="d-flex align-items-center justify-content-center rounded-3 me-3 text-white" style="background-color: {{ cat.color }}; width: 34px; height: 34px; box-shadow: 0 0 10px {{ cat.color }}55;">
+                                            <i class="fa-solid {{ cat.icon or 'fa-tag' }} fs-6"></i>
+                                        </span>
+                                        <span class="fw-semibold text-light">{{ cat.name }}</span>
+                                    </div>
+                                    
+                                    <!-- Delete Category -->
+                                    <form action="{{ url_for('tasks.delete_category', category_id=cat.id) }}" method="POST" class="m-0" onsubmit="return confirm('Are you sure you want to delete this category? Tasks using it will remain under General.');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2.5" title="Delete category">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12 py-5 text-center text-muted">
+                            <i class="fa-solid fa-tags fs-1 mb-2 opacity-30"></i>
+                            <p class="small mb-0">No categories found. Create some on the left.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

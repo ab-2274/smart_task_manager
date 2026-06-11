@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="animate-fade-in">
+
+    <!-- Dashboard Title -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 text-gradient">Your Workspace</h2>
+            <p class="text-secondary mb-0">Manage and execute your tasks intelligently</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('tasks.export_csv') }}" class="btn btn-secondary-custom d-flex align-items-center">
+                <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
+            </a>
+            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary d-flex align-items-center">
+                <i class="fa-solid fa-plus me-1.5"></i> New Task
+            </a>
+        </div>
+    </div>
+
+    <!-- Dashboard KPI Cards Row -->
+    <div class="row g-3 mb-4">
+        <!-- Total Tasks -->
+        <div class="col-6 col-md-3">
+            <div class="glass-panel p-3 text-center">
+                <span class="text-secondary small d-block mb-1"><i class="fa-solid fa-list-check text-primary me-1.5"></i>Total Tasks</span>
+                <span class="fs-4 fw-bold text-light">{{ stats.total }}</span>
+            </div>
+        </div>
+        <!-- Completed Tasks -->
+        <div class="col-6 col-md-3">
+            <div class="glass-panel p-3 text-center">
+                <span class="text-secondary small d-block mb-1"><i class="fa-solid fa-circle-check text-success me-1.5"></i>Completed</span>
+                <span class="fs-4 fw-bold text-success">{{ stats.completed }}</span>
+            </div>
+        </div>
+        <!-- Pending Tasks -->
+        <div class="col-6 col-md-3">
+            <div class="glass-panel p-3 text-center">
+                <span class="text-secondary small d-block mb-1"><i class="fa-solid fa-clock text-info me-1.5"></i>Active / Pending</span>
+                <span class="fs-4 fw-bold text-info">{{ stats.pending }}</span>
+            </div>
+        </div>
+        <!-- Overdue Tasks -->
+        <div class="col-6 col-md-3">
+            <div class="glass-panel p-3 text-center {% if stats.overdue > 0 %}border border-danger border-opacity-20{% endif %}">
+                <span class="text-secondary small d-block mb-1"><i class="fa-solid fa-triangle-exclamation {% if stats.overdue > 0 %}text-danger{% else %}text-muted{% endif %} me-1.5"></i>Overdue</span>
+                <span class="fs-4 fw-bold {% if stats.overdue > 0 %}text-danger{% else %}text-light{% endif %}">{{ stats.overdue }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Recommendations Engine Panel -->
+    {% if recommended_task or overdue_tasks or upcoming_urgent %}
+        <div class="glass-panel p-4 mb-4 smart-card border border-primary-glow">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mb-3 mb-lg-0">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-primary bg-opacity-20 text-primary p-3 rounded-3 me-3">
+                            <i class="fa-solid fa-wand-magic-sparkles fs-3 animate-pulse"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Smart Focus Assistant</h5>
+                            {% if recommended_task %}
+                                <p class="text-secondary small mb-2">Based on deadlines, status, and priority, we recommend tackling this task next:</p>
+                                <div class="d-inline-flex align-items-center bg-dark bg-opacity-40 border border-secondary border-opacity-10 px-3 py-2 rounded-3">
+                                    <span class="badge-priority badge-{{ recommended_task.priority|lower }} me-2">{{ recommended_task.priority }}</span>
+                                    <a href="{{ url_for('tasks.task_detail', task_id=recommended_task.id) }}" class="text-light fw-bold text-decoration-none hover-underline">{{ recommended_task.title }}</a>
+                                    {% if recommended_task.due_date %}
+                                        <span class="text-muted small ms-2"><i class="fa-regular fa-calendar me-1"></i>Due {{ recommended_task.due_date.strftime('%b %d') }}</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p class="text-secondary small mb-0">All set! No pending tasks require urgent focus. Keep it up!</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 border-start-lg" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <div class="ps-lg-3">
+                        <h6 class="fw-semibold text-secondary mb-2">Task Diagnostics</h6>
+                        <div class="d-flex gap-3">
+                            <div class="text-center p-2 rounded bg-danger bg-opacity-10 flex-grow-1 border border-danger border-opacity-10">
+                                <span class="d-block fs-4 fw-bold text-danger">{{ overdue_tasks|length }}</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Overdue</span>
+                            </div>
+                            <div class="text-center p-2 rounded bg-warning bg-opacity-10 flex-grow-1 border border-warning border-opacity-10">
+                                <span class="d-block fs-4 fw-bold text-warning">{{ upcoming_urgent|length }}</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Urgent (3d)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Filter & Search Panel -->
+    <div class="glass-panel p-3 mb-4">
+        <form method="GET" action="{{ url_for('tasks.dashboard') }}" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-glass) !important; color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Search tasks..." value="{{ current_filters.q }}">
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-2">
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if current_filters.category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-6 col-md-2">
+                <select name="priority" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Priorities</option>
+                    <option value="Low" {% if current_filters.priority == 'Low' %}selected{% endif %}>Low</option>
+                    <option value="Medium" {% if current_filters.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="High" {% if current_filters.priority == 'High' %}selected{% endif %}>High</option>
+                    <option value="Urgent" {% if current_filters.priority == 'Urgent' %}selected{% endif %}>Urgent</option>
+                </select>
+            </div>
+            
+            <div class="col-6 col-md-2">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" {% if current_filters.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="In Progress" {% if current_filters.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Completed" {% if current_filters.status == 'Completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            
+            <div class="col-6 col-md-2">
+                <select name="sort_by" class="form-select" onchange="this.form.submit()">
+                    <option value="due_date" {% if current_filters.sort_by == 'due_date' %}selected{% endif %}>Sort by: Due Date</option>
+                    <option value="priority" {% if current_filters.sort_by == 'priority' %}selected{% endif %}>Sort by: Priority</option>
+                    <option value="status" {% if current_filters.sort_by == 'status' %}selected{% endif %}>Sort by: Status</option>
+                    <option value="created_at" {% if current_filters.sort_by == 'created_at' %}selected{% endif %}>Sort by: Date Added</option>
+                </select>
+            </div>
+            
+            <div class="col-12 col-md-1 d-grid">
+                <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-secondary-custom p-2 d-flex align-items-center justify-content-center" title="Reset Filters">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Task Listing -->
+    <div class="row">
+        {% if tasks %}
+            {% for task in tasks %}
+                <div class="col-12 mb-3">
+                    <div class="glass-panel glass-panel-hover p-3.5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <div class="me-3">
+                                {% if task.status == 'Completed' %}
+                                    <span class="d-flex align-items-center justify-content-center bg-success bg-opacity-20 text-success rounded-circle" style="width: 38px; height: 38px;">
+                                        <i class="fa-solid fa-check fs-5"></i>
+                                    </span>
+                                {% elif task.status == 'In Progress' %}
+                                    <span class="d-flex align-items-center justify-content-center bg-info bg-opacity-20 text-info rounded-circle animate-spin" style="width: 38px; height: 38px;">
+                                        <i class="fa-solid fa-circle-notch fs-5"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-20 text-secondary rounded-circle" style="width: 38px; height: 38px;">
+                                        <i class="fa-regular fa-circle fs-5"></i>
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div style="min-width: 0;">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                    <a href="{{ url_for('tasks.task_detail', task_id=task.id) }}" class="h5 mb-0 fw-bold text-light text-decoration-none hover-underline text-truncate d-inline-block">{{ task.title }}</a>
+                                    
+                                    {% if task.category %}
+                                        <span class="tag-category" style="background-color: {{ task.category.color }}22; color: {{ task.category.color }}; border: 1px solid {{ task.category.color }}44;">
+                                            <i class="fa-solid {{ task.category.icon or 'fa-tag' }} me-1.5"></i>{{ task.category.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="tag-category bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-20"><i class="fa-solid fa-tag me-1.5"></i>General</span>
+                                    {% endif %}
+                                    
+                                    <span class="badge-priority badge-{{ task.priority|lower }}">{{ task.priority }}</span>
+                                </div>
+                                
+                                {% if task.description %}
+                                    <p class="text-secondary small mb-2 text-truncate" style="max-width: 500px;">{{ task.description }}</p>
+                                {% endif %}
+                                
+                                <div class="d-flex flex-wrap align-items-center gap-3 text-secondary small">
+                                    {% if task.due_date %}
+                                        <span class="{% if task.is_overdue %}text-danger fw-bold{% endif %}">
+                                            <i class="fa-regular fa-calendar-days me-1.5"></i>
+                                            {% if task.is_overdue %}
+                                                Overdue ({{ task.due_date.strftime('%b %d, %Y') }})
+                                            {% else %}
+                                                Due {{ task.due_date.strftime('%b %d, %Y') }}
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if task.subtasks %}
+                                        <span>
+                                            <i class="fa-solid fa-list-check me-1.5"></i>
+                                            {{ task.subtasks|selectattr('is_completed')|list|length }}/{{ task.subtasks|length }} Checklist
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar & Actions -->
+                        <div class="d-flex flex-row flex-md-column justify-content-between align-items-end gap-3" style="min-width: 180px;">
+                            <!-- Progress Bar (Only visible if task has checklist) -->
+                            {% if task.subtasks %}
+                                <div class="w-100 mb-md-1">
+                                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                                        <span>Progress</span>
+                                        <span>{{ task.completion_percentage }}%</span>
+                                    </div>
+                                    <div class="progress-custom">
+                                        <div class="progress-bar-fill" style="width: {{ task.completion_percentage }}%;"></div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- Actions -->
+                            <div class="d-flex gap-2 align-items-center">
+                                <a href="{{ url_for('tasks.task_detail', task_id=task.id) }}" class="btn btn-sm btn-secondary-custom px-2.5" title="View details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('tasks.edit_task', task_id=task.id) }}" class="btn btn-sm btn-secondary-custom px-2.5" title="Edit task">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <form action="{{ url_for('tasks.delete_task', task_id=task.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger px-2.5" title="Delete task">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="col-12 py-5 text-center">
+                <div class="glass-panel p-5 d-inline-block shadow-lg mx-auto" style="max-width: 500px;">
+                    <div class="text-primary mb-3">
+                        <i class="fa-solid fa-folder-open fs-1 opacity-50"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">No tasks found</h4>
+                    <p class="text-secondary small mb-4">You don't have any tasks matching your filters. Create a task or reset the filters to start tracking.</p>
+                    <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
+                        <i class="fa-solid fa-plus me-1"></i> Add First Task
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock content %}
